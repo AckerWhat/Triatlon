@@ -12,17 +12,12 @@
 <body>
     <div class="banner-container">
         <img class="banner" src="assets/Banner.png" alt="Ministerio del Poder Popular Para el Deporte">
-        <div class="banner-overlay">
-            <h1>Gran Triatlón 50K de la patria
-                <script>document.write(new Date().getFullYear());</script> -
-                <script>document.write(new Date().getFullYear() + 1);</script>
-            </h1>
-        </div>
     </div>
 
     <header>
+        <h1>Gran Triatlón 50K de la patria 2025</h1>
         <div class="event-info">
-            <p><i class="bi bi-calendar-event"></i> Fecha: <span id="eventDate"></span></p>
+            <p><i class="bi bi-calendar-event"></i> Fecha del evento: <span id="eventDate"></span></p>
         </div>
         <div class="navigation">
             <a href="#" onclick="mostrarSeccion('registro')" id="nav-registro">Registro</a>
@@ -31,7 +26,7 @@
         </div>
     </header>
 
-  <!-- Sección de Registro -->
+    <!-- Sección de Registro -->
     <section id="registro" class="seccion-activa">
         <h2><i class="bi bi-person-plus"></i> Formulario de Registro</h2>
         <div class="registro-contenedor">
@@ -78,7 +73,9 @@
         <div class="asistencia-contenedor">
             <h2><i class="bi bi-people"></i> Asistencia al Evento</h2>
             <div class="time-control">
-                <label for="horaInicio"><i class="bi bi-clock-history"></i> Inicio del evento (HH:MM:SS):</label>
+                <label for="fechaEvento"><i class="bi bi-calendar"></i> Fecha del evento:</label>
+                <input type="date" id="fechaEvento" required>
+                <label for="horaInicio"><i class="bi bi-clock-history"></i> Hora de inicio:</label>
                 <input type="time" id="horaInicio" step="1" required>
             </div>
             

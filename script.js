@@ -201,9 +201,11 @@ function searchRegistered() {
 
 // Función para confirmar asistencia
 function confirmarAsistencia() {
+    const fechaEvento = document.getElementById("fechaEvento").value;
     const horaInicio = document.getElementById("horaInicio").value;
-    if (!horaInicio) {
-        mostrarNotificacion("Por favor, ingrese la hora de inicio en el formato HH:MM:SS", "error");
+    
+    if (!fechaEvento || !horaInicio) {
+        mostrarNotificacion("Por favor, ingrese la fecha y hora de inicio", "error");
         return;
     }
     
@@ -218,7 +220,8 @@ function confirmarAsistencia() {
         return;
     }
     
-    // Guardar la hora de inicio en localStorage
+    // Guardar la fecha y hora de inicio en localStorage
+    localStorage.setItem('fechaEvento', fechaEvento);
     localStorage.setItem('horaInicioCompetencia', horaInicio);
     
     ListaParticipantes.forEach((participante, index) => {
@@ -288,13 +291,15 @@ function inicializarCompetencia() {
     // Inicializar gráfico
     inicializarGrafico();
     
-    // Obtener hora de inicio desde localStorage
-    const horaInicioGuardada = localStorage.getItem('horaInicioCompetencia');
-    const [horas, minutos, segundos] = horaInicioGuardada ? horaInicioGuardada.split(':') : ['08', '00', '00'];
+    // Obtener fecha y hora de inicio desde localStorage
+    const fechaEvento = localStorage.getItem('fechaEvento') || '2025-10-15';
+    const horaInicio = localStorage.getItem('horaInicioCompetencia') || '08:00:00';
     
     // Configurar reloj virtual
-    relojVirtual = new Date();
-    relojVirtual.setHours(parseInt(horas), parseInt(minutos), parseInt(segundos), 0);
+    const [year, month, day] = fechaEvento.split('-');
+    const [hours, minutes, seconds] = horaInicio.split(':');
+    
+    relojVirtual = new Date(year, month - 1, day, hours, minutes, seconds);
     
     // Inicializar participantes para competencia
     ListaParticipantes = ListaParticipantes.map(participante => {
@@ -790,10 +795,8 @@ function getIconoNotificacion(tipo) {
 // Inicialización cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', function() {
     // Configurar fecha del evento
-    const eventDate = new Date();
-    eventDate.setMonth(eventDate.getMonth() + 1);
-    document.getElementById('eventDate').textContent = eventDate.toLocaleDateString('es-VE');
-    document.getElementById('eventTime').textContent = '08:00 AM';
+    document.getElementById('eventDate').textContent = '15 de Octubre de 2025';
+    document.getElementById('fechaEvento').value = '2025-10-15'; // Formato YYYY-MM-DD
     
     // Mostrar la sección de registro por defecto
     mostrarSeccion('registro');
