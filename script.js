@@ -12,23 +12,19 @@ let intervaloReloj;
 
 // Funciones de navegación
 function mostrarSeccion(seccionId) {
-    // Ocultar todas las secciones
     document.querySelectorAll('section').forEach(seccion => {
         seccion.classList.add('seccion-oculta');
         seccion.classList.remove('seccion-activa');
     });
     
-    // Mostrar la sección seleccionada
     document.getElementById(seccionId).classList.remove('seccion-oculta');
     document.getElementById(seccionId).classList.add('seccion-activa');
     
-    // Actualizar navegación activa
     document.querySelectorAll('.navigation a').forEach(enlace => {
         enlace.classList.remove('active');
     });
     document.getElementById(`nav-${seccionId}`).classList.add('active');
     
-    // Actualizar contenido según la sección
     if (seccionId === 'asistencia') {
         actualizarListaAsistentes();
     } else if (seccionId === 'competencia') {
@@ -43,40 +39,34 @@ function registrarParticipante() {
     const municipio = document.getElementById('municipio').value.trim();
     const edad = parseInt(document.getElementById('edad').value);
 
-    // Limpiar mensajes de error previos
     document.getElementById('mensajeCedula').textContent = '';
     document.getElementById('mensajeEdad').textContent = '';
     document.getElementById('mensajeCampos').textContent = '';
 
-    // Validar que todos los campos están completos
     if (!nombre || !municipio || !cedula || !edad) {
         mostrarNotificacion('Por favor, complete todos los campos.', 'error');
         document.getElementById('mensajeCampos').textContent = 'Por favor, complete todos los campos.';
         return;
     }
 
-    // Validar si la cédula es menor que 1
     if (cedula < 1) {
         mostrarNotificacion('Cédula inválida', 'error');
         document.getElementById('mensajeCedula').textContent = 'Cédula Inválida';
         return;
     }
 
-    // Validar si la cédula ya está registrada
     if (ListaParticipantes.some(participante => participante.cedula === cedula)) {
         mostrarNotificacion('Ya existe un participante con esa cédula.', 'error');
         document.getElementById('mensajeCedula').textContent = 'Ya existe un participante con esa cédula.';
         return;
     }
 
-    // Validar que la edad sea mayor o igual a 15
     if (edad < 15) {
         mostrarNotificacion('Solo te puedes registrar si eres mayor de 14 años', 'error');
         document.getElementById('mensajeEdad').textContent = 'Solo te puedes registrar si eres mayor de 14 años';
         return;
     }
 
-    // Si todo es válido, crear el participante
     const participante = {
         cedula, 
         nombre, 
@@ -90,14 +80,12 @@ function registrarParticipante() {
     localStorage.setItem('participantes', JSON.stringify(ListaParticipantes));
     mostrarNotificacion('Participante registrado con éxito', 'exito');
     
-    // Limpiar formulario
     document.getElementById('nombre').value = '';
     document.getElementById('cedula').value = '';
     document.getElementById('municipio').value = '';
     document.getElementById('edad').value = '';
 }
 
-// Función para eliminar participante por cédula
 function eliminarParticipante() {
     const cedula = parseInt(document.getElementById('cedula').value);
     
@@ -115,91 +103,14 @@ function eliminarParticipante() {
         return;
     }
     
-    // Confirmar eliminación
     if (confirm(`¿Está seguro que desea eliminar al participante ${ListaParticipantes[indice].nombre} (C.I. ${cedula})?`)) {
         ListaParticipantes.splice(indice, 1);
         localStorage.setItem('participantes', JSON.stringify(ListaParticipantes));
         mostrarNotificacion("Participante eliminado con éxito", "exito");
-        actualizarListaRegistrados();
         document.getElementById('cedula').value = '';
     }
 }
 
-// Función para eliminar participante desde la tabla
-function eliminarParticipanteDesdeTabla(cedula) {
-    const indice = ListaParticipantes.findIndex(p => p.cedula === cedula);
-    
-    if (indice === -1) {
-        mostrarNotificacion("No se encontró el participante", "error");
-        return;
-    }
-    
-    const participante = ListaParticipantes[indice];
-    
-    if (confirm(`¿Está seguro que desea eliminar permanentemente a ${participante.nombre} (C.I. ${participante.cedula})?`)) {
-        ListaParticipantes.splice(indice, 1);
-        localStorage.setItem('participantes', JSON.stringify(ListaParticipantes));
-        mostrarNotificacion(`Participante ${participante.nombre} eliminado`, "exito");
-        actualizarListaRegistrados();
-        
-        // Si estamos en la sección de asistencia, actualizarla también
-        if (document.getElementById('asistencia').classList.contains('seccion-activa')) {
-            actualizarListaAsistentes();
-        }
-    }
-}
-
-// Función para actualizar la lista de participantes registrados
-function actualizarListaRegistrados() {
-    const tbody = document.getElementById('listaRegistrados');
-    tbody.innerHTML = '';
-    
-    ListaParticipantes.forEach(participante => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${participante.cedula}</td>
-            <td>${participante.nombre}</td>
-            <td>${participante.municipio}</td>
-            <td>${participante.edad}</td>
-            <td>
-                <button onclick="eliminarParticipanteDesdeTabla(${participante.cedula})" class="btn-accion btn-accion-eliminar">
-                    <i class="bi bi-trash"></i> Eliminar
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// Función para buscar en participantes registrados
-function searchRegistered() {
-    const input = document.getElementById('searchRegistered');
-    const filter = input.value.toUpperCase();
-    const table = document.getElementById('tablaRegistrados');
-    const tr = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < tr.length; i++) {
-        const tdCedula = tr[i].getElementsByTagName('td')[0];
-        const tdNombre = tr[i].getElementsByTagName('td')[1];
-        const tdMunicipio = tr[i].getElementsByTagName('td')[2];
-        
-        if (tdCedula || tdNombre || tdMunicipio) {
-            const txtValueCedula = tdCedula.textContent || tdCedula.innerText;
-            const txtValueNombre = tdNombre.textContent || tdNombre.innerText;
-            const txtValueMunicipio = tdMunicipio.textContent || tdMunicipio.innerText;
-            
-            if (txtValueCedula.toUpperCase().indexOf(filter) > -1 || 
-                txtValueNombre.toUpperCase().indexOf(filter) > -1 || 
-                txtValueMunicipio.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = '';
-            } else {
-                tr[i].style.display = 'none';
-            }
-        }
-    }
-}
-
-// Función para confirmar asistencia
 function confirmarAsistencia() {
     const fechaEvento = document.getElementById("fechaEvento").value;
     const horaInicio = document.getElementById("horaInicio").value;
@@ -220,7 +131,6 @@ function confirmarAsistencia() {
         return;
     }
     
-    // Guardar la fecha y hora de inicio en localStorage
     localStorage.setItem('fechaEvento', fechaEvento);
     localStorage.setItem('horaInicioCompetencia', horaInicio);
     
@@ -237,7 +147,6 @@ function confirmarAsistencia() {
     mostrarSeccion('competencia');
 }
 
-// Funciones auxiliares de asistencia
 function checkAll() {
     const items = document.querySelectorAll("#listaAsistentes input[type='checkbox']");
     items.forEach(item => item.checked = true);
@@ -256,15 +165,10 @@ function searchParticipants() {
     
     items.forEach(item => {
         const text = item.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
+        item.style.display = text.includes(searchTerm) ? 'block' : 'none';
     });
 }
 
-// Actualizar lista de asistentes
 function actualizarListaAsistentes() {
     const lista = document.getElementById("listaAsistentes");
     lista.innerHTML = "";
@@ -286,22 +190,17 @@ function actualizarListaAsistentes() {
     });
 }
 
-// Funciones de competencia
 function inicializarCompetencia() {
-    // Inicializar gráfico
     inicializarGrafico();
     
-    // Obtener fecha y hora de inicio desde localStorage
     const fechaEvento = localStorage.getItem('fechaEvento') || '2025-10-15';
     const horaInicio = localStorage.getItem('horaInicioCompetencia') || '08:00:00';
     
-    // Configurar reloj virtual
     const [year, month, day] = fechaEvento.split('-');
     const [hours, minutes, seconds] = horaInicio.split(':');
     
     relojVirtual = new Date(year, month - 1, day, hours, minutes, seconds);
     
-    // Inicializar participantes para competencia
     ListaParticipantes = ListaParticipantes.map(participante => {
         if (participante.asistio && participante.estado === "Compitiendo") {
             return {
@@ -327,29 +226,24 @@ function inicializarCompetencia() {
         return participante;
     });
     
-    // Iniciar reloj virtual
     iniciarRelojVirtual();
     actualizarTabla();
     actualizarContadores();
-    actualizarGrafico(); // Asegurar que el gráfico se actualice al inicio
+    actualizarGrafico();
 }
 
-// Iniciar simulación
 function iniciarSimulacion() {
     if (intervaloSimulacion) {
         clearInterval(intervaloSimulacion);
     }
     
-    // Efecto visual al iniciar
     document.getElementById('iniciarSimulacion').classList.add('pulse');
     document.getElementById('iniciarSimulacion').innerHTML = '<i class="bi bi-pause"></i> Pausar Competencia';
     document.getElementById('iniciarSimulacion').onclick = pausarSimulacion;
     
-    // Reiniciar tiempos con animación
     const horaActual = new Date(relojVirtual);
     ListaParticipantes = ListaParticipantes.map((participante, index) => {
         if (participante.asistio && participante.estado === "Compitiendo") {
-            // Efecto visual para cada participante
             setTimeout(() => {
                 const row = document.querySelector(`#tablaParticipantes tr:nth-child(${index + 1})`);
                 if (row) {
@@ -377,11 +271,8 @@ function iniciarSimulacion() {
         return participante;
     });
     
-    // Mejorar la velocidad de la simulación
     intervaloSimulacion = setInterval(() => {
-        // Actualizar progreso con variabilidad
         ListaParticipantes.forEach((participante, index) => {
-            // Añadir un pequeño retraso para efecto visual
             setTimeout(() => {
                 actualizarProgreso(participante);
                 if (index % 5 === 0) actualizarGrafico();
@@ -392,12 +283,11 @@ function iniciarSimulacion() {
         relojVirtual.setSeconds(relojVirtual.getSeconds() + 1);
         actualizarRelojVirtual();
         verificarFinalizacion();
-    }, 50); // Intervalo más rápido para mejor fluidez
+    }, 50);
     
     mostrarNotificacion("¡Competencia iniciada! Buena suerte a todos los participantes", "exito");
 }
 
-// Pausar simulación
 function pausarSimulacion() {
     clearInterval(intervaloSimulacion);
     document.getElementById('iniciarSimulacion').innerHTML = '<i class="bi bi-play"></i> Reanudar Competencia';
@@ -405,7 +295,6 @@ function pausarSimulacion() {
     mostrarNotificacion("Competencia pausada", "advertencia");
 }
 
-// Actualizar progreso de participantes
 function actualizarProgreso(participante) {
     if (!participante.asistio || participante.estado === "Descalificado" || participante.estado === "Finalizado") return;
 
@@ -415,17 +304,17 @@ function actualizarProgreso(participante) {
     switch (participante.disciplina) {
         case "Caminata":
             velocidad = participante.velocidadCaminata;
-            distanciaObjetivo = 10 * 1000; // 10 km en metros
+            distanciaObjetivo = 10 * 1000;
             participante.tiempoIteracionesCaminata += 1;
             break;
         case "Natación":
             velocidad = participante.velocidadNatacion;
-            distanciaObjetivo = 10 * 1000; // 10 km en metros
+            distanciaObjetivo = 10 * 1000;
             participante.tiempoIteracionesNatacion += 1;
             break;
         case "Ciclismo":
             velocidad = participante.velocidadCiclismo;
-            distanciaObjetivo = 30 * 1000; // 30 km en metros
+            distanciaObjetivo = 30 * 1000;
             participante.tiempoIteracionesCiclismo += 1;
             break;
     }
@@ -473,7 +362,6 @@ function actualizarProgreso(participante) {
     }
 }
 
-// Actualizar tiempo total del participante
 function actualizarTiempoTotal(participante) {
     const totalSegundos = participante.tiempoIteracionesCaminata + 
                          participante.tiempoIteracionesNatacion + 
@@ -486,7 +374,6 @@ function actualizarTiempoTotal(participante) {
     participante.tiempoTotal = `${horas}Hr : ${minutos}Min : ${segundos}Seg`;
 }
 
-// Actualizar tabla de participantes
 function actualizarTabla() {
     const tbody = document.getElementById('tablaParticipantes');
     tbody.innerHTML = "";
@@ -494,15 +381,11 @@ function actualizarTabla() {
     const participantesConfirmados = ListaParticipantes.filter(participante => participante.asistio);
 
     participantesConfirmados.sort((a, b) => {
-        // Descalificado debe ir al final
         if (a.estado === "Descalificado" && b.estado !== "Descalificado") return 1;
         if (b.estado === "Descalificado" && a.estado !== "Descalificado") return -1;
-
-        // Ordenar por estado de finalización
         if (a.estado === "Finalizado" && b.estado !== "Finalizado") return -1;
         if (b.estado === "Finalizado" && a.estado !== "Finalizado") return 1;
 
-        // Ordenar por rendimiento (distancia / tiempo)
         const ratioA = a.distanciaRecorridaTotal / (a.tiempoIteracionesCaminata + a.tiempoIteracionesNatacion + a.tiempoIteracionesCiclismo);
         const ratioB = b.distanciaRecorridaTotal / (b.tiempoIteracionesCaminata + b.tiempoIteracionesNatacion + b.tiempoIteracionesCiclismo);
         
@@ -512,7 +395,6 @@ function actualizarTabla() {
     participantesConfirmados.forEach((participante, index) => {
         const row = document.createElement('tr');
         
-        // Clases de medalla
         if (index === 0 && participante.estado === "Finalizado") {
             row.classList.add('oro');
         } else if (index === 1 && participante.estado === "Finalizado") {
@@ -521,7 +403,6 @@ function actualizarTabla() {
             row.classList.add('bronce');
         }
 
-        // Formatear fechas
         const formatDate = (date) => date ? date.toLocaleTimeString('es-VE') : '-';
         
         row.innerHTML = `
@@ -544,7 +425,6 @@ function actualizarTabla() {
     });
 }
 
-// Verificar finalización de la competencia
 function verificarFinalizacion() {
     const participantesActivos = ListaParticipantes.filter(p => p.asistio && p.estado === "Compitiendo");
     
@@ -560,7 +440,6 @@ function verificarFinalizacion() {
     actualizarContadores();
 }
 
-// Reloj virtual
 function iniciarRelojVirtual() {
     if (intervaloReloj) clearInterval(intervaloReloj);
     actualizarRelojVirtual();
@@ -577,7 +456,6 @@ function actualizarRelojVirtual() {
     document.getElementById('relojVirtual').textContent = `${horas}:${minutos}:${segundos}`;
 }
 
-// Actualizar contadores
 function actualizarContadores() {
     const total = ListaParticipantes.filter(p => p.asistio).length;
     const compitiendo = ListaParticipantes.filter(p => p.asistio && p.estado === "Compitiendo").length;
@@ -590,11 +468,9 @@ function actualizarContadores() {
     document.getElementById('descalificado').textContent = descalificado;
 }
 
-// Gráfico de progreso
 function inicializarGrafico() {
     const ctx = document.getElementById('graficoProgreso').getContext('2d');
     
-    // Destruir gráfico anterior si existe
     if (progressChart) progressChart.destroy();
     
     progressChart = new Chart(ctx, {
@@ -714,11 +590,7 @@ function actualizarGrafico() {
     if (!progressChart) return;
     
     const participantes = ListaParticipantes.filter(p => p.asistio && p.estado !== "Descalificado");
-    
-    // Ordenar participantes por distancia recorrida (mayor a menor)
     participantes.sort((a, b) => b.distanciaRecorridaTotal - a.distanciaRecorridaTotal);
-    
-    // Tomar solo los primeros 10 participantes para mejor visualización
     const topParticipantes = participantes.slice(0, 10);
     
     const labels = topParticipantes.map(p => p.nombre);
@@ -727,26 +599,21 @@ function actualizarGrafico() {
         p.tiempoIteracionesCaminata + p.tiempoIteracionesNatacion + p.tiempoIteracionesCiclismo
     );
     
-    // Actualizar datos del gráfico
     progressChart.data.labels = labels;
     progressChart.data.datasets[0].data = distancias;
     progressChart.data.datasets[1].data = tiempos;
     
-    // Actualizar colores según el estado
     progressChart.data.datasets[0].backgroundColor = topParticipantes.map(p => {
-        if (p.estado === "Finalizado") return 'rgba(40, 167, 69, 0.7)'; // Verde para finalizados
-        return 'rgba(227, 77, 92, 0.7)'; // Rojo para compitiendo
+        return p.estado === "Finalizado" ? 'rgba(40, 167, 69, 0.7)' : 'rgba(227, 77, 92, 0.7)';
     });
     
     progressChart.update();
 }
 
-// Sistema de notificaciones
 function mostrarNotificacion(mensaje, tipo) {
     const container = document.getElementById('notifications-container');
     const notificacion = document.createElement('div');
     
-    // Iconos animados
     const iconos = {
         exito: 'bi-check-circle-fill',
         error: 'bi-exclamation-circle-fill',
@@ -765,8 +632,6 @@ function mostrarNotificacion(mensaje, tipo) {
     
     setTimeout(() => {
         notificacion.classList.add('mostrar');
-        
-        // Barra de progreso
         const progressBar = notificacion.querySelector('.progress-bar');
         progressBar.style.width = '100%';
         progressBar.style.transition = 'width 3s linear';
@@ -782,63 +647,21 @@ function mostrarNotificacion(mensaje, tipo) {
     }, 3000);
 }
 
-function getIconoNotificacion(tipo) {
-    switch(tipo) {
-        case 'exito': return 'bi-check-circle-fill';
-        case 'error': return 'bi-exclamation-circle-fill';
-        case 'advertencia': return 'bi-exclamation-triangle-fill';
-        case 'info': return 'bi-info-circle-fill';
-        default: return 'bi-info-circle-fill';
-    }
-}
-
-// Inicialización cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar fecha del evento
     document.getElementById('eventDate').textContent = '15 de Octubre de 2025';
-    document.getElementById('fechaEvento').value = '2025-10-15'; // Formato YYYY-MM-DD
-    
-    // Mostrar la sección de registro por defecto
+    document.getElementById('fechaEvento').value = '2025-10-15';
     mostrarSeccion('registro');
-    actualizarListaRegistrados();
-
-    // Configurar navegación activa inicial
     document.getElementById('nav-registro').classList.add('active');
 });
 
-// Efecto de carga para las secciones
-function cargarSeccion(seccionId) {
-    const seccion = document.getElementById(seccionId);
-    seccion.style.opacity = '0';
-    seccion.style.transform = 'translateY(20px)';
-    
-    setTimeout(() => {
-        mostrarSeccion(seccionId);
-        seccion.style.opacity = '1';
-        seccion.style.transform = 'translateY(0)';
-    }, 50);
-}
-
-// Actualizar los eventos de navegación
 document.querySelectorAll('.navigation a').forEach(enlace => {
     enlace.onclick = function(e) {
         e.preventDefault();
         const seccionId = this.id.replace('nav-', '');
-        cargarSeccion(seccionId);
+        mostrarSeccion(seccionId);
     };
 });
 
-// Efecto de scroll suave
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-        });
-    });
-});
-
-// Animación para los botones 3D
 document.querySelectorAll('.efecto_3d').forEach(boton => {
     boton.addEventListener('mousedown', () => {
         boton.style.transform = 'scale(0.95)';
