@@ -2,6 +2,133 @@
 const VELOCIDAD_MAXIMA_CAMINATA = 7 / 3.6; // m/s
 const VELOCIDAD_MAXIMA_NATACION = 1.72; // m/s
 const VELOCIDAD_MAXIMA_CICLISMO = 45 / 3.6; // m/s
+const SEGUNDOS_POR_EJECUCION = 3
+const INTERVALO_ENTRE_EJECUCUCIONES = 1
+
+const corredores = [
+    {
+      nombre: "Juan Carlos Pérez González",
+      cedula: "00112345678",
+      municipio: "Santo Domingo",
+      edad: 28, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "María Fernanda Rodríguez López",
+      cedula: "00223456789",
+      municipio: "Santiago",
+      edad: 32, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Luis Alberto Martínez Sánchez",
+      cedula: "00334567890",
+      municipio: "La Vega",
+      edad: 25, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Ana Patricia Díaz Ramírez",
+      cedula: "00445678901",
+      municipio: "San Cristóbal",
+      edad: 35, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Carlos Enrique Jiménez Fernández",
+      cedula: "00556789012",
+      municipio: "Puerto Plata",
+      edad: 29, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Sofía Alejandra Herrera Cruz",
+      cedula: "00667890123",
+      municipio: "San Pedro de Macorís",
+      edad: 27, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "José Miguel García Pérez",
+      cedula: "00778901234",
+      municipio: "La Romana",
+      edad: 31, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Laura Isabel Vargas Martínez",
+      cedula: "00889012345",
+      municipio: "Moca",
+      edad: 24, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Pedro Antonio Núñez Díaz",
+      cedula: "00990123456",
+      municipio: "Bonao",
+      edad: 33, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Diana Carolina Mejía Rodríguez",
+      cedula: "01001234567",
+      municipio: "San Juan de la Maguana",
+      edad: 26, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Ricardo José Peña Sánchez",
+      cedula: "01112345018",
+      municipio: "Azua",
+      edad: 30, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Gabriela Michelle López Fernández",
+      cedula: "01223456129",
+      municipio: "Barahona",
+      edad: 28, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Fernando José Ramírez Cruz",
+      cedula: "01334567230",
+      municipio: "Higuey",
+      edad: 34, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Valeria Alejandra Sánchez Martínez",
+      cedula: "01445678341",
+      municipio: "Nagua",
+      edad: 23, 
+        estado: "Pendiente", 
+        asistio: false
+    },
+    {
+      nombre: "Roberto Carlos Jiminian Herrera",
+      cedula: "01556789452",
+      municipio: "San Francisco de Macorís",
+      edad: 29, 
+        estado: "Pendiente", 
+        asistio: false
+    }
+  ]
+
+localStorage.setItem('participantes', JSON.stringify(corredores));
 
 let ListaParticipantes = JSON.parse(localStorage.getItem('participantes')) || [];
 let intervaloSimulacion;
@@ -113,8 +240,6 @@ function actualizarTabla() {
             row.classList.add('bronce');
         }
 
-        const formatDate = (date) => date ? date.toLocaleTimeString('es-VE') : '-';
-        
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>${participante.nombre}</td>
@@ -153,7 +278,7 @@ function iniciarSimulacion() {
     }
     
     document.getElementById('iniciarSimulacion').classList.add('pulse');
-    document.getElementById('iniciarSimulacion').innerHTML = '<i class="bi bi-pause"></i> Pausar Competencia';
+    document.getElementById('iniciarSimulacion').innerHTML = '<i class="bi bi-pause"></i> Parar Competencia';
     document.getElementById('iniciarSimulacion').onclick = pausarSimulacion;
     
     const horaActual = new Date(relojVirtual);
@@ -193,17 +318,17 @@ function iniciarSimulacion() {
         });
         
         actualizarTabla();
-        relojVirtual.setSeconds(relojVirtual.getSeconds() + 5); // +5 segundos por iteración
+        relojVirtual.setSeconds(relojVirtual.getSeconds() + SEGUNDOS_POR_EJECUCION); // +1 segundos por iteración
         actualizarRelojVirtual();
         verificarFinalizacion();
-    }, 100); // Intervalo más largo pero menos ejecuciones
+    }, INTERVALO_ENTRE_EJECUCUCIONES); 
     
     mostrarNotificacion("¡Competencia iniciada! Buena suerte a todos los participantes", "exito");
 }
 
 function pausarSimulacion() {
     clearInterval(intervaloSimulacion);
-    document.getElementById('iniciarSimulacion').innerHTML = '<i class="bi bi-play"></i> Reanudar Competencia';
+    document.getElementById('iniciarSimulacion').innerHTML = '<i class="bi bi-play"></i> Reiniciar Competencia';
     document.getElementById('iniciarSimulacion').onclick = iniciarSimulacion;
     mostrarNotificacion("Competencia pausada", "advertencia");
 }
@@ -211,35 +336,34 @@ function pausarSimulacion() {
 function actualizarProgreso(participante) {
     if (!participante.asistio || participante.estado !== "Compitiendo") return;
 
-    // Aumentar el factor de tiempo simulado por iteración
-    const factorAceleracion = 5; // Cada iteración = 5 segundos de competencia
-    const variacionAleatoria = 0.5 + Math.random() * 1.5; // Mantener aleatoriedad 0.5 a 2.0
+    const variacionAleatoria = 0.999955 + Math.random(); // Probabilidad de ser descalificado
 
     let velocidad, distanciaObjetivo;
     
     switch(participante.disciplina) {
         case "Caminata":
-            velocidad = participante.velocidadCaminata * variacionAleatoria;
+            velocidad = participante.velocidadCaminata;
             distanciaObjetivo = 10 * 1000;
-            participante.tiempoIteracionesCaminata += factorAceleracion;
+            participante.tiempoIteracionesCaminata += SEGUNDOS_POR_EJECUCION;
             break;
+
         case "Natación":
-            velocidad = participante.velocidadNatacion * variacionAleatoria;
+            velocidad = participante.velocidadNatacion;
             distanciaObjetivo = 10 * 1000;
-            participante.tiempoIteracionesNatacion += factorAceleracion;
+            participante.tiempoIteracionesNatacion += SEGUNDOS_POR_EJECUCION;
             break;
+
         case "Ciclismo":
-            velocidad = participante.velocidadCiclismo * variacionAleatoria;
+            velocidad = participante.velocidadCiclismo;
             distanciaObjetivo = 30 * 1000;
-            participante.tiempoIteracionesCiclismo += factorAceleracion;
+            participante.tiempoIteracionesCiclismo += SEGUNDOS_POR_EJECUCION;
             break;
     }
 
-    const distanciaAvance = velocidad * factorAceleracion; // m/s * segundos
+    const distanciaAvance = (velocidad * SEGUNDOS_POR_EJECUCION) - variacionAleatoria; // m/s * segundos
+    
 
-
-
-    if (distanciaAvance <= 0.0001) {
+    if (variacionAleatoria < 1) {
         participante.estado = "Descalificado";
         mostrarNotificacion(`${participante.nombre} ha sido descalificado`, "error");
         return;
@@ -252,15 +376,7 @@ function actualizarProgreso(participante) {
         const horaActual = new Date(relojVirtual);
         
         switch (participante.disciplina) {
-            case "Caminata":
-                participante.finCaminata = new Date(horaActual);
-                participante.inicioNatacion = new Date(horaActual);
-                participante.distanciaRecorrida = 0;
-                participante.disciplina = "Natación";
-                actualizarTiempoTotal(participante);
-                mostrarNotificacion(`${participante.nombre} ha completado la caminata`, "info");
-                break;
-
+            
             case "Natación":
                 participante.finNatacion = new Date(horaActual);
                 participante.inicioCiclismo = new Date(horaActual);
@@ -276,8 +392,29 @@ function actualizarProgreso(participante) {
                 actualizarTiempoTotal(participante);
                 mostrarNotificacion(`${participante.nombre} ha completado la competencia!`, "exito");
                 break;
+
+            case "Caminata":
+                participante.finCaminata = new Date(horaActual);
+                participante.inicioNatacion = new Date(horaActual);
+                participante.distanciaRecorrida = 0;
+                participante.disciplina = "Natación";
+                actualizarTiempoTotal(participante);
+                mostrarNotificacion(`${participante.nombre} ha completado la caminata`, "info");
+                break;
         }
     }
+}
+
+function actualizarTiempoTotal(participante) {
+    const totalSegundos = participante.tiempoIteracionesCaminata + participante.tiempoIteracionesNatacion + participante.tiempoIteracionesCiclismo;
+ 
+    const horas = Math.floor(totalSegundos / 3600).toString().padStart(2, '0');
+ 
+    const minutos = Math.floor((totalSegundos % 3600) / 60).toString().padStart(2, '0');
+ 
+    const segundos = (totalSegundos % 60).toString().padStart(2, '0');
+ 
+    participante.tiempoTotal = `${horas}Hr : ${minutos}Min : ${segundos}Seg`;
 }
 
 function verificarFinalizacion() {
@@ -391,9 +528,9 @@ function inicializarCompetencia() {
                 finCiclismo: null,
                 tiempoTotal: "00Hr : 00Min : 00Seg",
                 // Velocidades base constantes con variacion inicial única
-                velocidadCaminata: VELOCIDAD_MAXIMA_CAMINATA * (0.5 + Math.random()),
-                velocidadNatacion: VELOCIDAD_MAXIMA_NATACION * (0.5 + Math.random()),
-                velocidadCiclismo: VELOCIDAD_MAXIMA_CICLISMO * (0.5 + Math.random())
+                velocidadCaminata: VELOCIDAD_MAXIMA_CAMINATA,
+                velocidadNatacion: VELOCIDAD_MAXIMA_NATACION,
+                velocidadCiclismo: VELOCIDAD_MAXIMA_CICLISMO
             };
         }
         return participante;
